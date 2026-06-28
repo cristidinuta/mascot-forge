@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  @apply bg-ink text-paper font-body;
+  margin: 0;
+}
+
+/* Eyebrow / annotation label — the technical mono lettering of a model sheet. */
+.annot {
+  @apply font-mono uppercase text-[11px] tracking-label text-ink45;
+}
+
+/* The drafting-paper canvas: warm stock with a faint registration grid. */
+.sheet {
+  background-color: theme("colors.paper");
+  background-image:
+    linear-gradient(theme("colors.paperline") 1px, transparent 1px),
+    linear-gradient(90deg, theme("colors.paperline") 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+/* Checkerboard behind transparent PNGs so alpha reads clearly. */
+.checker {
+  background-image:
+    linear-gradient(45deg, #00000010 25%, transparent 25%),
+    linear-gradient(-45deg, #00000010 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #00000010 75%),
+    linear-gradient(-45deg, transparent 75%, #00000010 75%);
+  background-size: 18px 18px;
+  background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+}
+
+/* Registration crosshair drawn in the corners of the model-sheet frame. */
+.reg::before,
+.reg::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: theme("colors.signal");
+  border-style: solid;
+  opacity: 0.7;
+}
+.reg::before {
+  top: 8px;
+  left: 8px;
+  border-width: 1px 0 0 1px;
+}
+.reg::after {
+  bottom: 8px;
+  right: 8px;
+  border-width: 0 1px 1px 0;
+}
+
+:focus-visible {
+  outline: 2px solid theme("colors.signal");
+  outline-offset: 2px;
+}
+
+@keyframes develop {
+  from { opacity: 0; filter: blur(6px); }
+  to { opacity: 1; filter: blur(0); }
+}
+.develop {
+  animation: develop 0.5s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .develop { animation: none; }
+}
