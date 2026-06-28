@@ -9,9 +9,9 @@ export function AnimateStep({ project }: { project: Doc<"projects"> }) {
   const buildSpec = useAction(api.spec.build);
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
 
-  const poses = (assets ?? []).filter((a) => a.kind === "pose");
-  const videoFor = (pose?: string) =>
-    (assets ?? []).find((a) => a.kind === "video" && a.pose === pose);
+  const poses = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose");
+  const videoFor = (pose?: string): Doc<"assets"> | undefined =>
+    (assets ?? []).find((a: Doc<"assets">) => a.kind === "video" && a.pose === pose);
 
   return (
     <div className="p-10">
@@ -26,7 +26,7 @@ export function AnimateStep({ project }: { project: Doc<"projects"> }) {
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        {poses.map((pose) => {
+        {poses.map((pose: Doc<"assets">) => {
           const video = videoFor(pose.pose);
           return (
             <div key={pose._id} className="border border-line bg-panel">

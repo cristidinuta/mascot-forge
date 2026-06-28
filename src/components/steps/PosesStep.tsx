@@ -11,8 +11,8 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const kicked = useRef(false);
 
-  const poses = (assets ?? []).filter((a) => a.kind === "pose");
-  const byPose = (p: Pose) => poses.find((a) => a.pose === p);
+  const poses = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose");
+  const byPose = (p: Pose) => poses.find((a: Doc<"assets">) => a.pose === p);
 
   useEffect(() => {
     if (
@@ -47,7 +47,7 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
 
       <div className="reg relative sheet shadow-sheet p-8">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-          {POSES.map((p) => {
+          {POSES.map((p: Pose) => {
             const a = byPose(p);
             return (
               <figure key={p} className="flex flex-col">

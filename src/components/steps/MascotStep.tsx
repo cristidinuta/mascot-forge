@@ -49,7 +49,7 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {mascots.map((m) => (
+        {mascots.map((m: Doc<"assets">) => (
           <button
             key={m._id}
             onClick={() => m.status === "ready" && setSelected(m._id)}
@@ -89,7 +89,7 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
         <div className="flex gap-2 mt-2">
           <input
             value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInstruction(e.target.value)}
             placeholder="rounder body, friendlier eyes, swap to navy blue…"
             className="flex-1 bg-panel border border-line px-4 py-3 font-mono text-[13px] placeholder:text-ink25 focus:border-signal outline-none"
           />

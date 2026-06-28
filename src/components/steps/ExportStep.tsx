@@ -39,8 +39,8 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
     );
   }
 
-  const poseAssets = (assets ?? []).filter((a) => a.kind === "pose" && a.url);
-  const videoAssets = (assets ?? []).filter((a) => a.kind === "video" && a.url);
+  const poseAssets = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose" && a.url);
+  const videoAssets = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "video" && a.url);
 
   return (
     <div className="p-10 max-w-5xl">
@@ -68,7 +68,7 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
           <div>
             <Annot>poses — png (transparent)</Annot>
             <div className="flex flex-wrap gap-2 mt-2">
-              {poseAssets.map((a) => (
+              {poseAssets.map((a: Doc<"assets">) => (
                 <a
                   key={a._id}
                   href={a.url!}
@@ -87,7 +87,7 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
             <div>
               <Annot>motion — mp4</Annot>
               <div className="flex flex-wrap gap-2 mt-2">
-                {videoAssets.map((a) => (
+                {videoAssets.map((a: Doc<"assets">) => (
                   <a
                     key={a._id}
                     href={a.url!}
