@@ -14,9 +14,8 @@ export function questionsPrompt(ctx: Ctx) {
       role: "system" as const,
       content:
         "You are an art director scoping a brand mascot for a consumer app. " +
-        "Given the app, propose exactly 3 multiple-choice questions whose answers " +
-        "most change the mascot design (character type, personality, color direction). " +
-        "Each question gets 3-4 short, mutually-exclusive options. " +
+        "Given the app, propose exactly 3 multiple-choice questions that matter most for mascot design. " +
+        "Each question must have 3-4 concise options, each option no longer than 4 words. " +
         'Reply with ONLY JSON: {"questions":[{"id","question","options":[...]}]} ' +
         "No prose, no markdown.",
     },

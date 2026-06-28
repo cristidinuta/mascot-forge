@@ -18,8 +18,8 @@ export default {
         ink25: "rgba(27,27,31,0.25)",
       },
       fontFamily: {
-        display: ['"Inter"', "system-ui", "sans-serif"],
-        body: ['"Inter"', "system-ui", "sans-serif"],
+        display: ['"Space Grotesk"', "system-ui", "sans-serif"],
+        body: ['"Space Grotesk"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
       letterSpacing: { label: "0.18em" },

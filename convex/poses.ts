@@ -10,8 +10,12 @@ import { POSES, Pose } from "./lib/constants";
 // mascot (passed as the reference image) so the character stays consistent.
 // All five fire in parallel to cut wall-clock.
 export const generateAll = action({
-  args: { projectId: v.id("projects"), mascotAssetId: v.id("assets") },
-  handler: async (ctx, { projectId, mascotAssetId }) => {
+  args: {
+    projectId: v.id("projects"),
+    mascotAssetId: v.id("assets"),
+    poses: v.array(v.string()),
+  },
+  handler: async (ctx, { projectId, mascotAssetId, poses }) => {
     const source = await ctx.runQuery(internal.assets.getInternal, {
       id: mascotAssetId,
     });
@@ -27,7 +31,9 @@ export const generateAll = action({
     });
 
     await Promise.all(
-      POSES.map(async (pose: Pose) => {
+      poses.map(async (poseName: string) => {
+        const pose = poseName as Pose;
+        if (!POSES.includes(pose)) return;
         const assetId = await ctx.runMutation(internal.assets.create, {
           projectId,
           kind: "pose",

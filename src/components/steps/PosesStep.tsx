@@ -11,6 +11,7 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const kicked = useRef(false);
 
+  const selectedPoses = project.answers?.selectedPoses?.split(";").filter(Boolean) ?? POSES;
   const poses = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose");
   const byPose = (p: Pose) => poses.find((a: Doc<"assets">) => a.pose === p);
 
@@ -26,12 +27,16 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
       void generateAll({
         projectId: project._id,
         mascotAssetId: project.approvedAssetId,
+        poses: selectedPoses,
       });
     }
-  }, [project.approvedAssetId, assets, poses.length, project.status]);
+  }, [project.approvedAssetId, assets, poses.length, project.status, selectedPoses]);
 
   const allReady =
-    poses.length === POSES.length && poses.every((p) => p.status === "ready");
+    selectedPoses.length > 0 &&
+    selectedPoses.every((pose) =>
+      poses.some((p) => p.pose === pose && p.status === "ready")
+    );
 
   return (
     <div className="p-10">

@@ -1,16 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Doc } from "../../../convex/_generated/dataModel";
+import { POSE_LABEL, Pose } from "../../types";
 import { Annot, Button, ErrorNote, Spinner } from "../ui";
+
+const POSE_OPTIONS = ["wave", "point", "celebrate", "think", "write"] as const;
 
 export function MascotStep({ project }: { project: Doc<"projects"> }) {
   const generate = useAction(api.mascot.generate);
   const iterate = useAction(api.mascot.iterate);
   const approve = useMutation(api.projects.setApproved);
+  const saveAnswers = useMutation(api.projects.setAnswers);
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const [instruction, setInstruction] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedActions, setSelectedActions] = useState<string[]>(
+    project.answers?.selectedPoses?.split(";").filter(Boolean) ?? ["wave", "point", "celebrate", "think"]
+  );
+  const [customActions, setCustomActions] = useState<string[]>(
+    project.answers?.customPoses?.split(";").filter(Boolean) ?? [""]
+  );
   const [hideOldVersions, setHideOldVersions] = useState(false);
   const kicked = useRef(false);
 
@@ -50,6 +60,40 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
     hideOldVersions && selected
       ? mascots.filter((m) => m._id === selected)
       : mascots;
+
+  const selectedCount =
+    selectedActions.length + customActions.filter(Boolean).length;
+
+  const toggleAction = (pose: string) => {
+    setSelectedActions((current) => {
+      if (current.includes(pose)) {
+        return current.filter((item) => item !== pose);
+      }
+      if (current.length + customActions.filter(Boolean).length >= 5) return current;
+      return [...current, pose];
+    });
+  };
+
+  const setCustomAction = (index: number, value: string) => {
+    setCustomActions((current) => {
+      const next = [...current];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const handleApprove = async () => {
+    if (!selected) return;
+    await saveAnswers({
+      id: project._id,
+      answers: {
+        ...project.answers,
+        selectedPoses: selectedActions.join(";"),
+        customPoses: customActions.filter(Boolean).join(";"),
+      },
+    });
+    approve({ id: project._id, assetId: selected as any });
+  };
 
   return (
     <div className="p-10 max-w-4xl">
@@ -102,12 +146,12 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
 
       <div className="mt-8 max-w-xl">
         <Annot>iterate on the selected version</Annot>
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-2 flex-col sm:flex-row">
           <input
             value={instruction}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInstruction(e.target.value)}
             placeholder="rounder body, friendlier eyes, swap to navy blue…"
-            className="flex-1 bg-panel border border-line px-4 py-3 font-mono text-[13px] placeholder:text-ink25 focus:border-signal outline-none"
+            className="flex-1 rounded-full bg-panel border border-line px-4 py-3 text-sm text-ink70 placeholder:text-ink45 focus:border-signal focus:ring-2 focus:ring-signal/20 outline-none"
           />
           <Button
             variant="ghost"
