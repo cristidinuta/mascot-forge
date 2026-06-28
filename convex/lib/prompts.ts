@@ -15,7 +15,8 @@ export function questionsPrompt(ctx: Ctx) {
       content:
         "You are an art director scoping a brand mascot for a consumer app. " +
         "Given the app, propose exactly 3 multiple-choice questions that matter most for mascot design. " +
-        "Each question must have 3-4 concise options, each option no longer than 4 words. " +
+        "Keep each question brief and practical, focused on personality, character, or energy. " +
+        "Each question must have 3-4 options, and every option must be 1-3 words max. " +
         'Reply with ONLY JSON: {"questions":[{"id","question","options":[...]}]} ' +
         "No prose, no markdown.",
     },
@@ -28,16 +29,54 @@ export function questionsPrompt(ctx: Ctx) {
 
 // 2) Base mascot generation — one transparent character on no background.
 export function mascotPrompt(ctx: Ctx, answers: Record<string, string>) {
-  const dir = Object.values(answers).filter(Boolean).join("; ");
+  const dir = directionBrief(answers);
+  const is3D = answers.visualDimension === "3D";
   return (
     `A single original mascot character for "${ctx.appName}", a ${ctx.genre} app. ` +
     `${ctx.description.slice(0, 300)}. ` +
-    `Art direction: ${dir || "friendly, modern, approachable"}. ` +
+    `Art direction: ${dir}. ` +
+    `Create a modern, friendly, mobile-app-native mascot with a strong silhouette and a clear personality. ` +
+    `The character should feel premium, approachable, and tailored for a polished app experience. ` +
+    (is3D
+      ? `Favor a dimensional 3D look with soft rounded forms, subtle shading, and a tactile, polished finish. `
+      : `Keep it clean and graphic with bold shape language and a crisp, high-clarity silhouette. `) +
+    `Use a limited palette, simple shapes, and a confident, readable pose. ` +
     `Full body, centered, facing forward, neutral friendly idle pose, expressive face. ` +
-    `Clean flat vector-style illustration with simple shapes and a limited palette. ` +
+    `If a color direction or inspiration influence is present, use it as a mood anchor while keeping the final design fresh and original. ` +
     `IMPORTANT: transparent background, no scene, no text, no logo, no drop shadow, ` +
     `no ground plane — just the isolated character.`
   );
+}
+
+function directionBrief(answers: Record<string, string>) {
+  const ignored = new Set([
+    "visualStyle",
+    "visualDimension",
+    "colorDirection",
+    "inspirationStrength",
+  ]);
+  const values = Object.entries(answers)
+    .filter(([key, value]) => Boolean(value) && !ignored.has(key))
+    .map(([, value]) => value.trim());
+
+  const pieces = [
+    answers.visualStyle && `style: ${answers.visualStyle}`,
+    answers.visualDimension && `dimension: ${answers.visualDimension}`,
+    answers.colorDirection && `color direction: ${answers.colorDirection}`,
+    answers.inspirationStrength &&
+      `inspiration influence: ${influenceLabel(answers.inspirationStrength)}`,
+    ...values,
+  ].filter(Boolean);
+
+  return pieces.length ? pieces.join("; ") : "friendly, modern, approachable";
+}
+
+function influenceLabel(value: string) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return "balanced";
+  if (n >= 70) return "strong";
+  if (n >= 35) return "balanced";
+  return "soft";
 }
 
 // 3) Pose edits — feed the APPROVED mascot back as a reference image so the
