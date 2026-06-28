@@ -41,17 +41,14 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
       <main className="flex-1 grid lg:grid-cols-2">
         <section className="px-8 lg:px-16 py-16 flex flex-col justify-center max-w-2xl">
           <Annot>turn an app into a mascot</Annot>
-          <h1 className="font-display font-bold text-5xl lg:text-6xl leading-[0.95] mt-4">
-            Point it at a store
+          <h1 className="font-display font-bold text-5xl lg:text-6xl leading-[0.95] mt-4 text-ink">
+            Turn a store link into a premium
             <br />
-            link. Get a mascot
-            <br />
-            <span className="text-signal">model sheet.</span>
+            mascot concept
           </h1>
           <p className="text-ink70 mt-6 leading-relaxed max-w-md">
-            Reads the app, asks a few direction questions, generates a character,
-            poses it into a full turnaround, and animates it — exported as a
-            behavioral spec any app can run.
+            We read the app, surface the brand, tune the vibe, and design a
+            character you can launch with confidence.
           </p>
 
           <div className="mt-10 flex flex-col gap-3 max-w-md">
@@ -67,19 +64,55 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
               <Button onClick={start}>Forge</Button>
             </div>
           </div>
+
+          <div className="mt-12 grid gap-4 max-w-md">
+            <div className="text-sm uppercase tracking-[0.3em] text-signal">Workflow</div>
+            <div className="grid gap-3">
+              <div className="rounded-3xl border border-line bg-panel2 p-5">
+                <div className="font-mono text-[11px] uppercase tracking-label text-ink45">01</div>
+                <div className="mt-2 font-display text-xl font-bold">Identify the brand</div>
+                <p className="text-ink70 text-sm mt-2">
+                  We read the app store details and capture the core experience.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-line bg-panel2 p-5">
+                <div className="font-mono text-[11px] uppercase tracking-label text-ink45">02</div>
+                <div className="mt-2 font-display text-xl font-bold">Adjust the tone</div>
+                <p className="text-ink70 text-sm mt-2">
+                  Refine the mascot vibe, style, and motion to match your brand.
+                </p>
+              </div>
+              <div className="rounded-3xl border border-line bg-panel2 p-5">
+                <div className="font-mono text-[11px] uppercase tracking-label text-ink45">03</div>
+                <div className="mt-2 font-display text-xl font-bold">Design the mascot</div>
+                <p className="text-ink70 text-sm mt-2">
+                  Generate the character, fine-tune it, then export a polished model sheet.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
         <aside className="hidden lg:flex items-center justify-center border-l border-line bg-panel/40 p-12">
-          <div className="reg relative sheet w-full max-w-md aspect-square shadow-sheet flex items-center justify-center">
-            <div className="text-center">
-              <div className="font-mono text-[11px] uppercase tracking-label text-ink/40">
-                model sheet
+          <div className="rounded-[32px] border border-line bg-panel2 p-10 shadow-sheet w-full max-w-md">
+            <div className="font-mono text-[11px] uppercase tracking-label text-ink45">
+              premium flow
+            </div>
+            <div className="font-display text-5xl font-bold text-ink mt-4">
+              3 simple steps
+            </div>
+            <div className="mt-8 space-y-5">
+              <div className="rounded-3xl border border-paperline bg-paper p-4">
+                <div className="font-bold text-sm text-ink">Identify brand</div>
+                <p className="text-ink70 text-sm mt-2">We pull context from the app store listing and category.</p>
               </div>
-              <div className="font-display text-ink/20 text-7xl font-bold mt-2">
-                01–05
+              <div className="rounded-3xl border border-paperline bg-paper p-4">
+                <div className="font-bold text-sm text-ink">Adjust tone</div>
+                <p className="text-ink70 text-sm mt-2">Choose the mascot energy and visual direction.</p>
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-label text-ink/30 mt-2">
-                wave · point · write · celebrate · think
+              <div className="rounded-3xl border border-paperline bg-paper p-4">
+                <div className="font-bold text-sm text-ink">Design character</div>
+                <p className="text-ink70 text-sm mt-2">Generate, refine, and export the final mascot assets.</p>
               </div>
             </div>
           </div>

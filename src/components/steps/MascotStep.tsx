@@ -11,6 +11,7 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const [instruction, setInstruction] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [hideOldVersions, setHideOldVersions] = useState(false);
   const kicked = useRef(false);
 
   const mascots = (assets ?? []).filter((a) => a.kind === "mascot");
@@ -35,6 +36,21 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
     if (ready.length && !selected) setSelected(ready[ready.length - 1]._id);
   }, [mascots, selected]);
 
+  useEffect(() => {
+    if (mascots.length > 1 && selected) {
+      const ready = mascots.filter((m) => m.status === "ready");
+      if (ready.length) {
+        setSelected(ready[ready.length - 1]._id);
+        setHideOldVersions(true);
+      }
+    }
+  }, [mascots, selected]);
+
+  const displayedMascots =
+    hideOldVersions && selected
+      ? mascots.filter((m) => m._id === selected)
+      : mascots;
+
   return (
     <div className="p-10 max-w-4xl">
       <Annot>03 — mascot</Annot>
@@ -49,7 +65,7 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {mascots.map((m: Doc<"assets">) => (
+        {displayedMascots.map((m: Doc<"assets">) => (
           <button
             key={m._id}
             onClick={() => m.status === "ready" && setSelected(m._id)}
@@ -120,6 +136,11 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
         >
           Approve → build model sheet
         </Button>
+        {hideOldVersions && (
+          <div className="mt-3 text-sm text-ink45">
+            The previous version is hidden after refinement.
+          </div>
+        )}
       </div>
     </div>
   );
