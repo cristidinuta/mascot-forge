@@ -1,140 +1,88 @@
 # Mascot Forge
 
-Point it at an App Store link → get a branded mascot, a full pose turnaround, short
-animations, and a **MascotSpec** (the behavior contract any consumer app can run).
-Built as a generalizable GTM tool: every consumer-app mascot collapses to the same
-loop — **log → reflect → rally** — so generating one for any app is filling a fixed
-template with a brand and a noun.
+Mascot Forge was built for the **YC Hackathon by Orange Slice** in the
+**Zero to One: AI-Enhanced PLG & Onboarding** track by **Cristian Dinuta** and
+**Mulyn Kim**.
 
-## Pipeline
+Mascot Forge takes an app from the App Store and personalizes a mascot around
+that product's brand, purpose, audience, and visual identity.
 
-```
-App Store URL
-  → 01 context   (iTunes Lookup API → app name, description, genre, icon)
-  → 02 direction (Gemini text → 3 art-direction questions → you answer)
-  → 03 mascot    (Gemini "Nano Banana" → generate + iterate via edits)
-  → 04 poses     (Gemini edits w/ the approved mascot as reference →
-                  wave · point · write · celebrate · think, in parallel)
-  → 05 motion    (Higgsfield image→video, async poll → MP4 per pose)
-  → 06 export    (MascotSpec.json + PNGs + MP4s + inferred palette)
-```
+It is a zero-to-one playbook for taking that mascot from an initial product idea
+to a consistent, integration-ready character system. Instead of producing a
+single illustration, Mascot Forge defines the mascot's visual direction,
+generates a reusable model sheet, creates animated assets, and packages the
+results for use throughout a product.
+
+We applied the playbook to [Welo Finance](https://welofinance.com), our finance
+app available on the App Store.
 
 ## Stack
 
-- **Backend:** Convex (functions, storage, scheduler for async polling)
-- **Frontend:** Vite + React + TypeScript + Tailwind
-- **APIs (server-side only):** Apple iTunes Lookup, Gemini (Nano Banana image + text),
-  Higgsfield via a gateway (WaveSpeed / Segmind / Pixazo)
+- **Frontend:** React, TypeScript, Vite, and Tailwind CSS, deployed and hosted
+  on **Vercel**
+- **Backend and storage:** **Convex**, including server functions, generated
+  asset storage, and asynchronous animation jobs
+- **AI image generation:** the **Gemini API** using Gemini Flash for mascot and
+  pose generation
+- **Animation:** **Higgsfield** image-to-video generation
+- **Secrets:** Gemini and Higgsfield API keys are stored in Convex and are never
+  exposed to the frontend
 
-## Setup
+## Product Flow
 
-```bash
-npm install
-npx convex dev          # creates your deployment + the convex/_generated/ files,
-                        # and writes VITE_CONVEX_URL into .env.local
-```
+1. **Add the app:** provide an App Store URL so Mascot Forge can understand the
+   product, category, and brand context.
+2. **Set the direction:** choose the mascot's form, personality, visual style,
+   dimensionality, and color direction.
+3. **Generate and refine:** create mascot concepts and iterate until one
+   character is approved.
+4. **Build the model sheet:** select standard or custom actions and generate
+   consistent transparent PNG poses from the approved mascot.
+5. **Add motion:** animate individual poses into reusable product-ready videos.
+6. **Export and integrate:** download the PNG, MP4, and MOV assets, with an
+   optional structured specification for developers.
 
-Set the backend secrets (these are NOT read by the frontend):
+The purpose is to make mascot creation repeatable rather than treating it as a
+one-off branding exercise. The output becomes a practical system for onboarding,
+empty states, celebrations, guidance, reminders, social content, and other
+product moments.
 
-```bash
-npx convex env set GEMINI_API_KEY      AIza...
-npx convex env set HIGGSFIELD_API_KEY <gateway key>
-npx convex env set HIGGSFIELD_BASE_URL https://api.wavespeed.ai/api/v3
-```
+## Growth and Virality
 
-Then, in a second terminal:
+Mascots give products a recognizable character that users can build an emotional
+connection with. That character can turn routine product events—completing a
+goal, reaching a streak, sharing progress, or inviting a friend—into visual
+moments that people are more likely to share.
 
-```bash
-npm run dev             # http://localhost:5173
-```
+This creates a product-led growth loop:
 
-## Deploy to Vercel
+**use the product → achieve a meaningful moment → receive a personalized mascot
+reaction → share it → introduce new users to the product**
 
-The frontend is a static Vite build; Convex hosts the backend separately. Two ways:
+Because the same mascot remains visually consistent across poses and animation,
+every shared asset reinforces brand recognition. Mascot Forge makes this loop
+repeatable across products by supplying both the character assets and a clear
+playbook for where and how the mascot should appear.
 
-**Simple (point Vercel at your existing Convex deployment):**
-1. Make sure `convex/_generated/` is committed (it is unless you ignored it) — Vercel
-   needs those files to build. If missing, run `npx convex dev` once and commit.
-2. Import the repo on vercel.com. It auto-detects Vite. Build command `npm run build`
-   (now just `vite build` — no typecheck gate), output dir `dist`.
-3. Add one Vercel **Environment Variable**: `VITE_CONVEX_URL` = your Convex URL
-   (the one in your local `.env.local`).
-4. Deploy. Keys (`GEMINI_API_KEY`, etc.) live on **Convex**, never in Vercel.
+## Zero-to-One Mascot Playbook
 
-**Proper (Vercel also deploys the Convex backend to prod):**
-- Set the Vercel **Build Command** to `npx convex deploy --cmd 'npm run build'`.
-- Add a Vercel env var `CONVEX_DEPLOY_KEY` (Convex dashboard → Settings → Deploy Keys → Production).
-- Set your `GEMINI_API_KEY` / Higgsfield keys on the **prod** deployment too:
-  `npx convex env set GEMINI_API_KEY AIza... --prod`.
+Mascot Forge is more than an asset generator. It provides a structured path for
+deciding:
 
-Note: the build failing on Vercel with `tsc` errors is fixed — the build no longer
-typechecks (Vite/esbuild just transpiles). For local type safety run `npx tsc --noEmit`.
+- what the mascot represents within the product;
+- how its personality and appearance connect to the brand;
+- which poses and reactions support key user moments;
+- how motion should be introduced without changing the character;
+- how the final assets should be exported and integrated consistently.
 
-## Read this before the demo (the parts that bite)
+The result is a mascot system that can move from concept to onboarding and
+product integration without requiring teams to invent the process from scratch.
 
-1. **Gemini needs billing enabled.** Image *output* isn't on Gemini's free tier — the
-   project behind your AI Studio key (`AIza...`) must have billing on. No identity
-   verification required (unlike OpenAI), just a card / prepaid balance. Set a per-day
-   request quota on the Generative Language API as a hard spend cap.
-2. **Latency.** Image gen takes a few seconds; Higgsfield video is async (queue + poll).
-   **Pre-generate the demo company's assets before judging.** The live "Forge" button is
-   for one fast happy-path, not a row of long renders on stage.
-3. **Higgsfield isn't first-party.** Access runs through a gateway. All gateway-specific
-   field names are isolated in `convex/lib/higgsfield.ts` — swap providers by editing
-   only that file. Its credits are not covered by the hackathon's OpenAI/Cursor credits.
-4. **Hosting.** Convex hosts the backend/data/functions. The React frontend runs locally
-   (`npm run dev`) for the demo, or deploy it to Vercel/Netlify and point it at your
-   Convex URL. Convex does not host the SPA itself.
-5. **Format reality.** Gemini image output is raster → exports are **PNG + MP4 + JSON**, not SVG.
-   If you need recolorable vectors for the in-app runtime, keep the SVG-template track
-   separate (see roadmap); this tool is the bespoke/AI path.
+## Stretch Feature
 
-## File map
-
-```
-convex/
-  schema.ts            projects · assets · jobs
-  projects.ts          create/get/list + stage mutations
-  assets.ts            asset list (with URLs) + internal writers
-  appContext.ts        01 — iTunes Lookup
-  questions.ts         02 — elicitation questions
-  mascot.ts            03 — generate + iterate
-  poses.ts             04 — 5-pose turnaround (parallel)
-  animate.ts           05 — Higgsfield submit + scheduled poll loop
-  spec.ts              06 — assemble MascotSpec
-  lib/
-    gemini.ts          Nano Banana generate/edit + chat JSON (swap models here)
-    higgsfield.ts      gateway submit/poll                  (swap gateways here)
-    prompts.ts         every prompt template
-    constants.ts       POSES, archetypes, pose intents
-src/
-  App.tsx              landing + sidebar pipeline + stage routing
-  types.ts             MascotSpec contract (frontend mirror)
-  components/ui.tsx    Button / Panel / Spinner / Annot / ErrorNote
-  components/steps/    one file per pipeline stage
-```
-
-## MascotSpec — the contract
-
-The export both *defines* what the mascot can do (declarations) and *carries* its
-assets. The host app binds three handlers (log / reflect / rally) to real backend
-calls — that's the only per-app integration work, regardless of complexity.
-
-```jsonc
-{
-  "version": "1.0",
-  "brand": { "appName", "appStoreId", "iconUrl", "primary", "secondary", "palette": [] },
-  "domain": "finance",
-  "noun": "expense",
-  "mascot": { "name", "character", "personality": [], "greeting" },
-  "actions": [ { "id", "archetype": "log|reflect|rally", "name", "description", "params": [] } ],
-  "challenges": [ { "id", "name", "description", "durationDays" } ],
-  "assets": { "hero", "poses": {}, "videos": {} }
-}
-```
-
----
-
-Built entirely during the hackathon as a **separate codebase** from the Welo app
-(which is Flutter + Firebase). This is the generalizable mascot-generation layer;
-Welo is its first reference customer.
+A natural next step is automatic social-video generation. Since the mascots and
+their movements are already generated and animation-ready, Mascot Forge could
+combine them with hooks, captions, product footage, voiceover, and templates to
+produce different TikToks and short-form videos. This would turn the same mascot
+system used inside the product into an efficient, repeatable social acquisition
+channel.
