@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Doc } from "../../../convex/_generated/dataModel";
-import { POSE_LABEL, Pose } from "../../types";
+import { POSE_LABEL } from "../../types";
 import { Annot, Button, ErrorNote, Spinner } from "../ui";
 
 const POSE_OPTIONS = ["wave", "point", "celebrate", "think", "write", "jump"] as const;
@@ -21,6 +21,7 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
   const [customActions, setCustomActions] = useState<string[]>(
     project.answers?.customPoses?.split(";").filter(Boolean) ?? []
   );
+  const [customActionDraft, setCustomActionDraft] = useState("");
   const [hideOldVersions, setHideOldVersions] = useState(false);
   const kicked = useRef(false);
 
@@ -74,24 +75,15 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
     });
   };
 
-  const setCustomAction = (index: number, value: string) => {
-    setCustomActions((current) => {
-      const next = [...current];
-      next[index] = value;
-      return next;
-    });
-  };
-
   const addCustomAction = () => {
-    setCustomActions((current) =>
-      current.length + selectedActions.length + customActions.filter(Boolean).length >= 5
-        ? current
-        : [...current, ""]
+    const action = customActionDraft.trim();
+    if (!action || selectedCount >= 5) return;
+    const alreadySelected = [...selectedActions, ...customActions].some(
+      (item) => item.toLowerCase() === action.toLowerCase()
     );
-  };
-
-  const removeCustomAction = (index: number) => {
-    setCustomActions((current) => current.filter((_, itemIndex) => itemIndex !== index));
+    if (alreadySelected) return;
+    setCustomActions((current) => [...current, action]);
+    setCustomActionDraft("");
   };
 
   const handleApprove = async () => {
@@ -205,29 +197,42 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
               </button>
             );
           })}
-        </div>
-        <div className="mt-4 space-y-2">
-          {customActions.map((action, index) => (
-            <div key={`${index}-${action}`} className="flex items-center gap-2">
-              <input
-                value={action}
-                onChange={(e) => setCustomAction(index, e.target.value)}
-                placeholder="Jump, spin, stretch…"
-                className="flex-1 rounded-full bg-panel border border-line px-4 py-3 text-sm text-ink70 outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
-              />
-              <button
-                type="button"
-                onClick={() => removeCustomAction(index)}
-                className="rounded-full border border-line px-3 py-2 text-sm text-ink70"
-              >
-                Remove
-              </button>
-            </div>
+          {customActions.map((action) => (
+            <button
+              key={action}
+              type="button"
+              onClick={() =>
+                setCustomActions((current) =>
+                  current.filter((item) => item !== action)
+                )
+              }
+              aria-pressed="true"
+              title={`Remove ${action}`}
+              className="rounded-full border border-signal bg-signal/10 px-3 py-2 text-sm text-ink transition-colors hover:bg-signal/5"
+            >
+              {action}
+            </button>
           ))}
+        </div>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <input
+            value={customActionDraft}
+            onChange={(e) => setCustomActionDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustomAction();
+              }
+            }}
+            disabled={selectedCount >= 5}
+            placeholder="Dance, spin, stretch…"
+            className="flex-1 rounded-full bg-panel border border-line px-4 py-3 text-sm text-ink70 outline-none focus:border-signal focus:ring-2 focus:ring-signal/20 disabled:opacity-50"
+          />
           <button
             type="button"
             onClick={addCustomAction}
-            className="rounded-full border border-line px-3 py-2 text-sm text-ink70"
+            disabled={!customActionDraft.trim() || selectedCount >= 5}
+            className="rounded-full border border-line px-4 py-2 text-sm text-ink70 disabled:cursor-not-allowed disabled:opacity-40"
           >
             + Add custom action
           </button>

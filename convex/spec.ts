@@ -58,8 +58,13 @@ export const build = action({
       let hero: string | undefined;
       for (const a of assets) {
         if (a.status !== "ready" || !a.url) continue;
-        if (a.kind === "pose" && a.pose) poses[a.pose] = a.url;
-        if (a.kind === "video" && a.pose) videos[a.pose] = a.url;
+        // Assets arrive newest-first; retain the first ready version per pose.
+        if (a.kind === "pose" && a.pose && !poses[a.pose]) {
+          poses[a.pose] = a.url;
+        }
+        if (a.kind === "video" && a.pose && !videos[a.pose]) {
+          videos[a.pose] = a.url;
+        }
         if (a.kind === "mascot" && a._id === project.approvedAssetId) hero = a.url;
       }
 

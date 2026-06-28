@@ -11,7 +11,14 @@ export function AnimateStep({ project }: { project: Doc<"projects"> }) {
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const [startingPoseId, setStartingPoseId] = useState<string | null>(null);
 
-  const poses = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose");
+  const poses = (assets ?? []).filter(
+    (asset: Doc<"assets">, index, all) =>
+      asset.kind === "pose" &&
+      all.findIndex(
+        (candidate: Doc<"assets">) =>
+          candidate.kind === "pose" && candidate.pose === asset.pose
+      ) === index
+  );
   const videoFor = (pose?: string): Doc<"assets"> | undefined =>
     (assets ?? [])
       .filter(
@@ -37,8 +44,6 @@ export function AnimateStep({ project }: { project: Doc<"projects"> }) {
       </h2>
       <p className="text-ink45 text-sm mb-8 max-w-xl">
         Higgsfield animates each pose into a short MP4 with a tailored gesture.
-        Jobs run async — they fill in as they finish. Animate just the poses you
-        need for the demo; you don't have to do all five.
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">

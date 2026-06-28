@@ -100,7 +100,6 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const spec = project.spec as MascotSpec | undefined;
   const [convertingId, setConvertingId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   if (!spec) {
     return (
@@ -120,14 +119,22 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
     );
   }
 
-  const poseAssets = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose" && a.url);
-  const videoAssets = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "video" && a.url);
-
-  async function copySpec() {
-    await navigator.clipboard.writeText(JSON.stringify(spec, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
+  const latestReadyAssets = (kind: "pose" | "video") =>
+    (assets ?? []).filter(
+      (asset: Doc<"assets">, index, all) =>
+        asset.kind === kind &&
+        asset.status === "ready" &&
+        Boolean(asset.url) &&
+        all.findIndex(
+          (candidate: Doc<"assets">) =>
+            candidate.kind === kind &&
+            candidate.status === "ready" &&
+            Boolean(candidate.url) &&
+            candidate.pose === asset.pose
+        ) === index
+    );
+  const poseAssets = latestReadyAssets("pose");
+  const videoAssets = latestReadyAssets("video");
 
   async function convertToMOV(asset: Doc<"assets">) {
     if (!asset.url) return;
@@ -152,34 +159,27 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
 
       <div className="space-y-8">
         <div>
-          <Annot>behavior contract</Annot>
-          <div className="flex flex-wrap gap-2 mt-2">
-            <Button onClick={() => downloadJSON(spec)}>
-              Download JSON
-            </Button>
-            <Button variant="ghost" onClick={() => void copySpec()}>
-              {copied ? "Copied" : "Copy to clipboard"}
-            </Button>
-          </div>
-          <pre className="mt-3 bg-panel border border-line p-3 text-[10px] leading-relaxed font-mono text-ink70 overflow-auto max-h-40">
-            {JSON.stringify(spec, null, 2)}
-          </pre>
-        </div>
-
-        <div>
           <Annot>poses — png (transparent)</Annot>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
             {poseAssets.map((a: Doc<"assets">) => (
-              <button
-                key={a._id}
-                type="button"
-                onClick={() =>
-                  void fetchAndDownload(a.url!, `${a.pose}.png`)
-                }
-                className="px-3 py-2 border border-line font-mono text-[11px] uppercase tracking-label hover:bg-panel2"
-              >
-                ↓ {POSE_LABEL[a.pose as Pose] ?? a.pose}
-              </button>
+              <div key={a._id} className="overflow-hidden border border-line bg-panel">
+                <div className="checker aspect-[3/4]">
+                  <img
+                    src={a.url}
+                    alt={POSE_LABEL[a.pose as Pose] ?? a.pose}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void fetchAndDownload(a.url!, `${a.pose}.png`)
+                  }
+                  className="w-full border-t border-line px-3 py-2 font-mono text-[11px] uppercase tracking-label hover:bg-panel2"
+                >
+                  ↓ {POSE_LABEL[a.pose as Pose] ?? a.pose} PNG
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -187,38 +187,61 @@ export function ExportStep({ project }: { project: Doc<"projects"> }) {
         {videoAssets.length > 0 && (
           <div>
             <Annot>motion — mp4 + mov</Annot>
-            <div className="space-y-2 mt-2">
+            <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {videoAssets.map((a: Doc<"assets">) => {
                 const label = POSE_LABEL[a.pose as Pose] ?? a.pose;
                 const converting = convertingId === a._id;
                 return (
-                  <div key={a._id} className="flex flex-wrap items-center gap-2">
-                    <span className="w-24 font-mono text-[11px] uppercase tracking-label text-ink70">
-                      {label}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        void fetchAndDownload(a.url!, `${a.pose}.mp4`)
-                      }
-                      className="px-3 py-2 border border-line font-mono text-[11px] uppercase tracking-label hover:bg-panel2"
-                    >
-                      ↓ MP4
-                    </button>
-                    <button
-                      type="button"
-                      disabled={convertingId !== null}
-                      onClick={() => void convertToMOV(a)}
-                      className="px-3 py-2 border border-line font-mono text-[11px] uppercase tracking-label hover:bg-panel2 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {converting ? "converting…" : "↓ MOV"}
-                    </button>
+                  <div key={a._id} className="overflow-hidden border border-line bg-panel">
+                    <video
+                      src={a.url}
+                      muted
+                      loop
+                      autoPlay
+                      playsInline
+                      className="aspect-[4/3] w-full bg-ink object-contain"
+                    />
+                    <div className="p-3">
+                      <div className="mb-2 font-mono text-[11px] uppercase tracking-label text-ink70">
+                        {label}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void fetchAndDownload(a.url!, `${a.pose}.mp4`)
+                          }
+                          className="flex-1 px-3 py-2 border border-line font-mono text-[11px] uppercase tracking-label hover:bg-panel2"
+                        >
+                          ↓ MP4
+                        </button>
+                        <button
+                          type="button"
+                          disabled={convertingId !== null}
+                          onClick={() => void convertToMOV(a)}
+                          className="flex-1 px-3 py-2 border border-line font-mono text-[11px] uppercase tracking-label hover:bg-panel2 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {converting ? "converting…" : "↓ MOV"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
         )}
+
+        <details className="border-t border-line pt-5">
+          <summary className="cursor-pointer text-sm text-ink45 hover:text-ink70">
+            Developer export
+          </summary>
+          <div className="mt-3">
+            <Button variant="ghost" onClick={() => downloadJSON(spec)}>
+              Download JSON
+            </Button>
+          </div>
+        </details>
       </div>
     </div>
   );

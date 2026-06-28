@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Doc } from "../../../convex/_generated/dataModel";
@@ -7,9 +7,13 @@ import { Annot, Button, Spinner } from "../ui";
 
 export function PosesStep({ project }: { project: Doc<"projects"> }) {
   const generateAll = useAction(api.poses.generateAll);
+  const refine = useAction(api.poses.refine);
   const setStage = useMutation(api.projects.setStage);
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const kicked = useRef(false);
+  const [editingPose, setEditingPose] = useState<Doc<"assets"> | null>(null);
+  const [editInstruction, setEditInstruction] = useState("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
 
   const selectedPoses = [
     ...(project.answers?.selectedPoses?.split(";").filter(Boolean) ?? []),
@@ -43,6 +47,23 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
     requestedPoses.every((pose) =>
       poses.some((p) => p.pose === pose && p.status === "ready")
     );
+
+  async function submitPoseEdit() {
+    const instruction = editInstruction.trim();
+    if (!editingPose || !instruction || submittingEdit) return;
+    setSubmittingEdit(true);
+    try {
+      await refine({
+        projectId: project._id,
+        sourceAssetId: editingPose._id,
+        instruction,
+      });
+      setEditingPose(null);
+      setEditInstruction("");
+    } finally {
+      setSubmittingEdit(false);
+    }
+  }
 
   return (
     <div className="p-10">
@@ -89,6 +110,18 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
                     {String(requestedPoses.indexOf(p) + 1).padStart(2, "0")}
                   </span>
                 </figcaption>
+                {a?.status === "ready" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingPose(a);
+                      setEditInstruction("");
+                    }}
+                    className="mt-2 self-start rounded-full border border-line px-3 py-1.5 text-xs text-ink70 transition-colors hover:bg-panel2"
+                  >
+                    Edit pose
+                  </button>
+                )}
               </figure>
             );
           })}
@@ -124,6 +157,69 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
         )}
         {!allReady && <Spinner label="Posing the character…" />}
       </div>
+
+      {editingPose && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-ink/35 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pose-edit-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !submittingEdit) {
+              setEditingPose(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-lg rounded-[28px] border border-line bg-paper p-6 shadow-sheet">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Annot>edit one pose</Annot>
+                <h3
+                  id="pose-edit-title"
+                  className="mt-2 font-display text-xl font-bold"
+                >
+                  {POSE_LABEL[editingPose.pose as Pose] ?? editingPose.pose}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingPose(null)}
+                disabled={submittingEdit}
+                className="rounded-full px-2 py-1 text-ink45 disabled:opacity-40"
+                aria-label="Close pose editor"
+              >
+                ×
+              </button>
+            </div>
+            <div className="mt-5 rounded-2xl bg-panel2 px-4 py-3 text-sm text-ink70">
+              Describe what you want changed in this pose. The other poses will
+              stay unchanged.
+            </div>
+            <form
+              className="mt-3 flex flex-col gap-3 sm:flex-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitPoseEdit();
+              }}
+            >
+              <input
+                autoFocus
+                value={editInstruction}
+                onChange={(event) => setEditInstruction(event.target.value)}
+                placeholder="Raise the hand higher, make the expression happier…"
+                disabled={submittingEdit}
+                className="flex-1 rounded-full border border-line bg-panel px-4 py-3 text-sm text-ink70 outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+              />
+              <Button
+                type="submit"
+                disabled={!editInstruction.trim() || submittingEdit}
+              >
+                {submittingEdit ? "Regenerating…" : "Regenerate"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
