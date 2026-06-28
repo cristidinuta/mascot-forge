@@ -11,6 +11,7 @@ export const listForProject = query({
     const assets = await ctx.db
       .query("assets")
       .withIndex("by_project", (q) => q.eq("projectId", projectId))
+      .order("desc")
       .collect();
     // Attach a fresh URL for anything that has stored bytes.
     return Promise.all(
