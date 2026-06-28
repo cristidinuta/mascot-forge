@@ -60,7 +60,7 @@ export const generateAll = action({
     await ctx.runMutation(internal.projects.setStatus, {
       id: projectId,
       status: "idle",
-      stage: "animate",
+      stage: "poses",
     });
   },
 });

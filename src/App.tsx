@@ -38,20 +38,15 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
         <Annot>brand → character · generator</Annot>
       </header>
 
-      <main className="flex-1 grid lg:grid-cols-2">
-        <section className="px-8 lg:px-16 py-16 flex flex-col justify-center max-w-2xl">
-          <Annot>bring an app to life</Annot>
-          <h1 className="font-display font-bold text-5xl lg:text-6xl leading-[0.95] mt-4 text-ink text-left">
-            Bring your app to life through a
+      <main className="flex-1 grid lg:grid-cols-[1.1fr_0.9fr] items-start gap-8 px-8 lg:px-16 py-12 lg:py-16">
+        <section className="flex flex-col max-w-2xl pt-6 lg:pt-10">
+          <h1 className="font-display font-bold text-5xl lg:text-6xl leading-[0.95] text-ink text-left">
+            Bring your <span className="text-signal">app</span> to life with a
             <br />
-            <span className="text-signal">premium</span> mascot concept
+            <span className="text-signal">premium</span> <span className="text-signal">mascot</span> concept
           </h1>
-          <p className="text-ink70 mt-6 leading-relaxed max-w-md text-left">
-            We read the app, capture the vibe, shape the character, and help you
-            turn a product into something people remember.
-          </p>
 
-          <div className="mt-10 flex flex-col gap-3 max-w-md">
+          <div className="mt-10 flex flex-col gap-3 max-w-xl">
             <Annot>app store url</Annot>
             <div className="flex gap-3">
               <input
@@ -61,33 +56,31 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
                 placeholder="https://apps.apple.com/us/app/…/id123456789"
                 className="flex-1 rounded-full bg-panel border border-line px-5 py-4 text-sm text-ink70 placeholder:text-ink45 focus:border-signal focus:ring-2 focus:ring-signal/20 outline-none"
               />
-              <Button onClick={start}>Bring it to life</Button>
+              <Button onClick={start}>Forge</Button>
             </div>
           </div>
         </section>
 
-        <aside className="hidden lg:flex items-start justify-center p-12">
-          <div className="rounded-[32px] bg-panel2 p-10 shadow-sheet w-full max-w-md">
+        <aside className="hidden lg:flex justify-end">
+          <div className="rounded-[28px] bg-panel2 p-7 shadow-sheet w-full max-w-[22rem]">
             <div className="font-display text-[11px] uppercase tracking-[0.28em] text-ink45">
               premium flow
             </div>
-            <div className="font-display text-5xl font-bold text-ink mt-4">
+            <div className="font-display text-3xl font-bold text-ink mt-3 leading-tight">
               Refine the mascot journey
             </div>
-            <div className="mt-8 space-y-4 text-left">
-              <div className="rounded-3xl bg-paper p-5">
+            <div className="mt-6 space-y-3 text-left">
+              <div className="rounded-2xl bg-paper p-4">
                 <div className="font-semibold text-sm text-ink">01 · Identify the app</div>
-                <p className="text-ink70 text-sm mt-2">We pull the app store context and shape the brief.</p>
+                <p className="text-ink70 text-sm mt-1">We pull the app store context and shape the brief.</p>
               </div>
-              <div className="flex justify-center text-ink45">↓</div>
-              <div className="rounded-3xl bg-paper p-5">
+              <div className="rounded-2xl bg-paper p-4">
                 <div className="font-semibold text-sm text-ink">02 · Answer the right questions</div>
-                <p className="text-ink70 text-sm mt-2">Choose the form, personality, and palette direction.</p>
+                <p className="text-ink70 text-sm mt-1">Choose the form, personality, and visual direction.</p>
               </div>
-              <div className="flex justify-center text-ink45">↓</div>
-              <div className="rounded-3xl bg-paper p-5">
+              <div className="rounded-2xl bg-paper p-4">
                 <div className="font-semibold text-sm text-ink">03 · Approve the hero</div>
-                <p className="text-ink70 text-sm mt-2">Select the strongest mascot and build the model sheet.</p>
+                <p className="text-ink70 text-sm mt-1">Select the strongest mascot and build the model sheet.</p>
               </div>
             </div>
           </div>

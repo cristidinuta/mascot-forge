@@ -22,10 +22,12 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
   useEffect(() => {
     if (
       project.approvedAssetId &&
+      project.stage === "poses" &&
       assets &&
       poses.length === 0 &&
       project.status !== "working" &&
-      !kicked.current
+      !kicked.current &&
+      requestedPoses.length > 0
     ) {
       kicked.current = true;
       void generateAll({
@@ -34,7 +36,7 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
         poses: requestedPoses,
       });
     }
-  }, [project.approvedAssetId, assets, poses.length, project.status, selectedPoses]);
+  }, [project.approvedAssetId, project.stage, assets, poses.length, project.status, requestedPoses]);
 
   const allReady =
     requestedPoses.length > 0 &&
@@ -99,13 +101,27 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
         </div>
       )}
 
-      <div className="mt-10 flex items-center gap-4">
+      <div className="mt-10 flex flex-wrap items-center gap-4">
         <Button
           disabled={!allReady}
           onClick={() => setStage({ id: project._id, stage: "animate" })}
         >
           Next: add motion
         </Button>
+        {!allReady && (
+          <Button
+            variant="ghost"
+            onClick={() =>
+              generateAll({
+                projectId: project._id,
+                mascotAssetId: project.approvedAssetId as any,
+                poses: requestedPoses,
+              })
+            }
+          >
+            Generate model sheet
+          </Button>
+        )}
         {!allReady && <Spinner label="Posing the character…" />}
       </div>
     </div>
