@@ -108,9 +108,28 @@ function poseDescription(pose: string): string {
   }
 }
 
-// 4) Higgsfield motion prompt — ambient life, not a hard gesture.
+const MOTION_BASE =
+  "subtle looping animation, character centered and fully in frame, static camera, no zoom/pan, seamless loop, gentle breathing + occasional blink.";
+
+const POSE_MOTION: Record<string, string> = {
+  wave: "waves raised hand smoothly back and forth, friendly, light bounce",
+  point:
+    "confident point toward viewer, small knowing nod, slight forward lean",
+  write:
+    "hand moving as if jotting a note, head tilted in focus, small nods",
+  celebrate:
+    "arms raised, joyful hop/bounce, bright excited energy",
+  think:
+    "taps chin thoughtfully, eyes up, slow contemplative sway",
+};
+
+// 4) Higgsfield motion prompt — pose-specific gestures over a shared,
+//    camera-safe looping base.
 export function motionPrompt(pose: string) {
-  return `Subtle idle motion for a character mascot: gentle breathing, slight bob, soft blink. Keep the ${pose} pose. Minimal camera movement.`;
+  const motion =
+    POSE_MOTION[pose] ??
+    `gentle, natural movement that suits a "${pose}" pose, with soft idle motion and a light, lively feel.`;
+  return `${MOTION_BASE} ${motion}`;
 }
 
 // 5) Spec extraction — turn app context into the behavioral MascotSpec the

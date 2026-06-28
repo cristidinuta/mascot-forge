@@ -10,6 +10,8 @@
     "convex": "convex dev"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@google/genai": "^2.10.0",
     "convex": "^1.17.0",
     "react": "^18.3.1",
