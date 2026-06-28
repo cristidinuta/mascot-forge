@@ -36,10 +36,12 @@ export async function submitVideo(
       Authorization: `Bearer ${key()}`,
     },
     body: JSON.stringify({
-      input_images: [imageUrl],
+      image: imageUrl,
       prompt,
-      model: "dop-turbo",
-      motions: [{ motion: "Subtle Idle", strength: 0.4 }],
+      options: "dop-turbo",
+      // DoP requires a motion preset. "Static" keeps camera motion out of the
+      // clip so the prompt can drive only the mascot's gesture.
+      motions: [{ motion: "Static", strength: 1 }],
     }),
   });
   if (!res.ok) {
@@ -82,7 +84,14 @@ export async function pollVideo(pollingUrl: string): Promise<PollResult> {
     return { status: "done", videoUrl };
   }
   if (["failed", "error", "canceled"].includes(raw)) {
-    return { status: "error", error: raw };
+    return {
+      status: "error",
+      error:
+        data?.data?.error ??
+        data?.error ??
+        data?.message ??
+        `Higgsfield job ${raw}`,
+    };
   }
   return { status: "processing" };
 }

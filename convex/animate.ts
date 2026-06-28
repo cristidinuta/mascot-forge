@@ -4,7 +4,6 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { submitVideo, pollVideo } from "./lib/higgsfield";
 import { motionPrompt } from "./lib/prompts";
-import { Pose } from "./lib/constants";
 
 const MAX_ATTEMPTS = 60; // ~5 min at 5s intervals
 const POLL_MS = 5000;
@@ -34,7 +33,7 @@ export const start = action({
     try {
       const { externalId, pollingUrl } = await submitVideo(
         imageUrl,
-        motionPrompt((pose.pose ?? "wave") as Pose)
+        motionPrompt(pose.pose ?? "wave")
       );
       const jobId = await ctx.runMutation(internal.animateJobs.createJob, {
         projectId,
@@ -70,9 +69,10 @@ export const poll = internalAction({
       return;
     }
 
-    const result = await pollVideo(job.pollingUrl!);
+    try {
+      const result = await pollVideo(job.pollingUrl!);
 
-    if (result.status === "processing") {
+      if (result.status === "processing") {
         await ctx.runMutation(internal.animateJobs.setJobStatus, {
           id: jobId,
           status: "processing",
@@ -84,28 +84,44 @@ export const poll = internalAction({
 
       if (result.status === "error") {
         await ctx.runMutation(internal.animateJobs.setJobStatus, {
+          id: jobId,
+          status: "error",
+        });
+        await ctx.runMutation(internal.assets.setError, {
+          id: job.assetId,
+          error: result.error,
+        });
+        return;
+      }
+
+      // Done — pull the MP4 into Convex storage so exports are self-contained.
+      const res = await fetch(result.videoUrl);
+      if (!res.ok) {
+        throw new Error(`Video download failed: ${res.status}`);
+      }
+      const buf = Buffer.from(await res.arrayBuffer());
+      const storageId = await ctx.storage.store(
+        new Blob([buf], { type: "video/mp4" })
+      );
+      await ctx.runMutation(internal.assets.setReady, {
+        id: job.assetId,
+        storageId,
+      });
+      await ctx.runMutation(internal.animateJobs.setJobStatus, {
+        id: jobId,
+        status: "done",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Animation polling failed.";
+      await ctx.runMutation(internal.animateJobs.setJobStatus, {
+        id: jobId,
         status: "error",
       });
       await ctx.runMutation(internal.assets.setError, {
         id: job.assetId,
-        error: result.error,
+        error: message,
       });
-      return;
     }
-
-    // Done — pull the MP4 into Convex storage so exports are self-contained.
-    const res = await fetch(result.videoUrl);
-    const buf = Buffer.from(await res.arrayBuffer());
-    const storageId = await ctx.storage.store(
-      new Blob([buf], { type: "video/mp4" })
-    );
-    await ctx.runMutation(internal.assets.setReady, {
-      id: job.assetId,
-      storageId,
-    });
-    await ctx.runMutation(internal.animateJobs.setJobStatus, {
-      id: jobId,
-      status: "done",
-    });
   },
 });
