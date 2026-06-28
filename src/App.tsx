@@ -40,15 +40,15 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
 
       <main className="flex-1 grid lg:grid-cols-2">
         <section className="px-8 lg:px-16 py-16 flex flex-col justify-center max-w-2xl">
-          <Annot>turn an app into a mascot</Annot>
+          <Annot>bring an app to life</Annot>
           <h1 className="font-display font-bold text-5xl lg:text-6xl leading-[0.95] mt-4 text-ink text-left">
-            Turn a <span className="text-signal">store link</span> into a
+            Bring your app to life through a
             <br />
             <span className="text-signal">premium</span> mascot concept
           </h1>
           <p className="text-ink70 mt-6 leading-relaxed max-w-md text-left">
-            We read the app, capture the brand, tune the tone, and design a
-            character you can launch with confidence.
+            We read the app, capture the vibe, shape the character, and help you
+            turn a product into something people remember.
           </p>
 
           <div className="mt-10 flex flex-col gap-3 max-w-md">
@@ -61,7 +61,7 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
                 placeholder="https://apps.apple.com/us/app/…/id123456789"
                 className="flex-1 rounded-full bg-panel border border-line px-5 py-4 text-sm text-ink70 placeholder:text-ink45 focus:border-signal focus:ring-2 focus:ring-signal/20 outline-none"
               />
-              <Button onClick={start}>Forge</Button>
+              <Button onClick={start}>Bring it to life</Button>
             </div>
           </div>
         </section>
@@ -74,17 +74,19 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
             <div className="font-display text-5xl font-bold text-ink mt-4">
               Refine the mascot journey
             </div>
-            <div className="mt-8 space-y-5 text-left">
+            <div className="mt-8 space-y-4 text-left">
               <div className="rounded-3xl bg-paper p-5">
-                <div className="font-semibold text-sm text-ink">Identify the app</div>
+                <div className="font-semibold text-sm text-ink">01 · Identify the app</div>
                 <p className="text-ink70 text-sm mt-2">We pull the app store context and shape the brief.</p>
               </div>
+              <div className="flex justify-center text-ink45">↓</div>
               <div className="rounded-3xl bg-paper p-5">
-                <div className="font-semibold text-sm text-ink">Answer the right questions</div>
-                <p className="text-ink70 text-sm mt-2">Then choose the visual mood and inspiration direction.</p>
+                <div className="font-semibold text-sm text-ink">02 · Answer the right questions</div>
+                <p className="text-ink70 text-sm mt-2">Choose the form, personality, and palette direction.</p>
               </div>
+              <div className="flex justify-center text-ink45">↓</div>
               <div className="rounded-3xl bg-paper p-5">
-                <div className="font-semibold text-sm text-ink">Approve the hero</div>
+                <div className="font-semibold text-sm text-ink">03 · Approve the hero</div>
                 <p className="text-ink70 text-sm mt-2">Select the strongest mascot and build the model sheet.</p>
               </div>
             </div>
@@ -103,6 +105,7 @@ function Workspace({
   onExit: () => void;
 }) {
   const project = useQuery(api.projects.get, { id: projectId });
+  const setStage = useMutation(api.projects.setStage);
   const [view, setView] = useState<StageKey>("context");
 
   // Follow the pipeline forward as the backend advances the stage.
@@ -116,6 +119,18 @@ function Workspace({
     return <div className="p-8 font-mono text-ink45">Project not found.</div>;
 
   const reachedIdx = STAGES.findIndex((s) => s.key === project.stage);
+  const currentIndex = Math.max(0, STAGES.findIndex((s) => s.key === view));
+
+  function handleStepSelect(key: StageKey) {
+    setView(key);
+    void setStage({ id: project._id, stage: key });
+  }
+
+  function handleStepShift(offset: number) {
+    const nextIndex = Math.max(0, Math.min(STAGES.length - 1, currentIndex + offset));
+    const nextKey = STAGES[nextIndex].key;
+    handleStepSelect(nextKey);
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -137,7 +152,7 @@ function Workspace({
               <button
                 key={s.key}
                 disabled={!reached}
-                onClick={() => setView(s.key)}
+                onClick={() => handleStepSelect(s.key)}
                 className={`w-full text-left px-3 py-3 flex items-baseline gap-3 transition-colors ${
                   active ? "bg-panel2" : "hover:bg-panel"
                 } ${reached ? "" : "opacity-30 cursor-not-allowed"}`}
@@ -151,6 +166,24 @@ function Workspace({
               </button>
             );
           })}
+          <div className="mt-auto border-t border-line p-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => handleStepShift(-1)}
+              disabled={currentIndex === 0}
+              className="rounded-full px-3 py-2 text-sm text-ink70 disabled:opacity-40"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => handleStepShift(1)}
+              disabled={currentIndex >= STAGES.length - 1}
+              className="rounded-full px-3 py-2 text-sm text-ink70 disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </nav>
 

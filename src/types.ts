@@ -1,4 +1,4 @@
-export const POSES = ["wave", "point", "write", "celebrate", "think"] as const;
+export const POSES = ["wave", "point", "write", "celebrate", "think", "jump"] as const;
 export type Pose = (typeof POSES)[number];
 
 export const POSE_LABEL: Record<Pose, string> = {
@@ -7,6 +7,7 @@ export const POSE_LABEL: Record<Pose, string> = {
   write: "Write",
   celebrate: "Celebrate",
   think: "Think",
+  jump: "Jump",
 };
 
 export const STAGES = [

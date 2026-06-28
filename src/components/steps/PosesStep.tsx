@@ -11,9 +11,13 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
   const assets = useQuery(api.assets.listForProject, { projectId: project._id });
   const kicked = useRef(false);
 
-  const selectedPoses = project.answers?.selectedPoses?.split(";").filter(Boolean) ?? POSES;
+  const selectedPoses = [
+    ...(project.answers?.selectedPoses?.split(";").filter(Boolean) ?? []),
+    ...(project.answers?.customPoses?.split(";").filter(Boolean) ?? []),
+  ].filter(Boolean);
+  const requestedPoses = selectedPoses.length > 0 ? selectedPoses : POSES;
   const poses = (assets ?? []).filter((a: Doc<"assets">) => a.kind === "pose");
-  const byPose = (p: Pose) => poses.find((a: Doc<"assets">) => a.pose === p);
+  const byPose = (p: string) => poses.find((a: Doc<"assets">) => a.pose === p);
 
   useEffect(() => {
     if (
@@ -27,14 +31,14 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
       void generateAll({
         projectId: project._id,
         mascotAssetId: project.approvedAssetId,
-        poses: selectedPoses,
+        poses: requestedPoses,
       });
     }
   }, [project.approvedAssetId, assets, poses.length, project.status, selectedPoses]);
 
   const allReady =
-    selectedPoses.length > 0 &&
-    selectedPoses.every((pose) =>
+    requestedPoses.length > 0 &&
+    requestedPoses.every((pose) =>
       poses.some((p) => p.pose === pose && p.status === "ready")
     );
 
@@ -46,13 +50,13 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
       </h2>
       <p className="text-ink45 text-sm mb-8 max-w-xl">
         Each pose is the same approved character, re-posed via reference-image
-        edits so the identity holds. Same loop every app needs: log · reflect ·
-        rally · greet · process.
+        edits so the identity holds. The turnaround follows the actions you picked
+        on the mascot page.
       </p>
 
       <div className="reg relative sheet shadow-sheet p-8">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-          {POSES.map((p: Pose) => {
+          {requestedPoses.map((p: string) => {
             const a = byPose(p);
             return (
               <figure key={p} className="flex flex-col">
@@ -77,10 +81,10 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
                 </div>
                 <figcaption className="mt-2 flex items-baseline justify-between">
                   <span className="font-mono text-[11px] uppercase tracking-label text-ink/60">
-                    {POSE_LABEL[p]}
+                    {POSE_LABEL[p as Pose] ?? p}
                   </span>
                   <span className="font-mono text-[10px] text-ink/30">
-                    {String(POSES.indexOf(p) + 1).padStart(2, "0")}
+                    {String(requestedPoses.indexOf(p) + 1).padStart(2, "0")}
                   </span>
                 </figcaption>
               </figure>
@@ -88,6 +92,12 @@ export function PosesStep({ project }: { project: Doc<"projects"> }) {
           })}
         </div>
       </div>
+
+      {requestedPoses.length === 0 && (
+        <div className="mt-6 text-sm text-ink45">
+          Pick at least one action on the mascot step to build the model sheet.
+        </div>
+      )}
 
       <div className="mt-10 flex items-center gap-4">
         <Button

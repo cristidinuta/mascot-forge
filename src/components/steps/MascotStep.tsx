@@ -5,7 +5,7 @@ import { Doc } from "../../../convex/_generated/dataModel";
 import { POSE_LABEL, Pose } from "../../types";
 import { Annot, Button, ErrorNote, Spinner } from "../ui";
 
-const POSE_OPTIONS = ["wave", "point", "celebrate", "think", "write"] as const;
+const POSE_OPTIONS = ["wave", "point", "celebrate", "think", "write", "jump"] as const;
 
 export function MascotStep({ project }: { project: Doc<"projects"> }) {
   const generate = useAction(api.mascot.generate);
@@ -16,10 +16,10 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
   const [instruction, setInstruction] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedActions, setSelectedActions] = useState<string[]>(
-    project.answers?.selectedPoses?.split(";").filter(Boolean) ?? ["wave", "point", "celebrate", "think"]
+    project.answers?.selectedPoses?.split(";").filter(Boolean) ?? []
   );
   const [customActions, setCustomActions] = useState<string[]>(
-    project.answers?.customPoses?.split(";").filter(Boolean) ?? [""]
+    project.answers?.customPoses?.split(";").filter(Boolean) ?? []
   );
   const [hideOldVersions, setHideOldVersions] = useState(false);
   const kicked = useRef(false);
@@ -82,8 +82,20 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
     });
   };
 
+  const addCustomAction = () => {
+    setCustomActions((current) =>
+      current.length + selectedActions.length + customActions.filter(Boolean).length >= 5
+        ? current
+        : [...current, ""]
+    );
+  };
+
+  const removeCustomAction = (index: number) => {
+    setCustomActions((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  };
+
   const handleApprove = async () => {
-    if (!selected) return;
+    if (!selected || selectedCount === 0) return;
     await saveAnswers({
       id: project._id,
       answers: {
@@ -92,7 +104,7 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
         customPoses: customActions.filter(Boolean).join(";"),
       },
     });
-    approve({ id: project._id, assetId: selected as any });
+    await approve({ id: project._id, assetId: selected as any });
   };
 
   return (
@@ -144,39 +156,95 @@ export function MascotStep({ project }: { project: Doc<"projects"> }) {
         )}
       </div>
 
-      <div className="mt-8 max-w-xl">
-        <Annot>iterate on the selected version</Annot>
-        <div className="flex gap-2 mt-2 flex-col sm:flex-row">
-          <input
-            value={instruction}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInstruction(e.target.value)}
-            placeholder="rounder body, friendlier eyes, swap to navy blue…"
-            className="flex-1 rounded-full bg-panel border border-line px-4 py-3 text-sm text-ink70 placeholder:text-ink45 focus:border-signal focus:ring-2 focus:ring-signal/20 outline-none"
-          />
-          <Button
-            variant="ghost"
-            disabled={!selected || !instruction.trim() || project.status === "working"}
-            onClick={() => {
-              if (!selected) return;
-              iterate({
-                projectId: project._id,
-                sourceAssetId: selected as any,
-                instruction: instruction.trim(),
-              });
-              setInstruction("");
-            }}
-          >
-            Apply edit
-          </Button>
+      <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="flex-1 max-w-xl">
+          <Annot>iterate on the selected version</Annot>
+          <div className="flex gap-2 mt-2 flex-col sm:flex-row">
+            <input
+              value={instruction}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInstruction(e.target.value)}
+              placeholder="rounder body, friendlier eyes, swap to navy blue…"
+              className="flex-1 rounded-full bg-panel border border-line px-4 py-3 text-sm text-ink70 placeholder:text-ink45 focus:border-signal focus:ring-2 focus:ring-signal/20 outline-none"
+            />
+            <Button
+              variant="ghost"
+              disabled={!selected || !instruction.trim() || project.status === "working"}
+              onClick={() => {
+                if (!selected) return;
+                iterate({
+                  projectId: project._id,
+                  sourceAssetId: selected as any,
+                  instruction: instruction.trim(),
+                });
+                setInstruction("");
+              }}
+            >
+              Apply edit
+            </Button>
+          </div>
         </div>
+
+        <aside className="w-full lg:w-80 rounded-[32px] border border-line bg-panel2 p-6 text-left">
+          <div className="font-semibold text-sm text-ink">Model sheet options</div>
+          <p className="text-ink70 text-sm mt-2">
+            Pick the poses you want the mascot to perform in the model sheet.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {POSE_OPTIONS.map((pose) => {
+              const active = selectedActions.includes(pose);
+              return (
+                <button
+                  key={pose}
+                  onClick={() => toggleAction(pose)}
+                  className={`rounded-full border px-3 py-2 text-sm transition-colors ${
+                    active
+                      ? "border-signal bg-signal/10 text-ink"
+                      : "border-line text-ink70 hover:bg-panel"
+                  }`}
+                >
+                  {POSE_LABEL[pose as keyof typeof POSE_LABEL]}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-4 space-y-2">
+            {customActions.map((action, index) => (
+              <div key={`${index}-${action}`} className="flex items-center gap-2">
+                <input
+                  value={action}
+                  onChange={(e) => setCustomAction(index, e.target.value)}
+                  placeholder="Jump, spin, stretch…"
+                  className="flex-1 rounded-full bg-panel border border-line px-4 py-3 text-sm text-ink70 outline-none focus:border-signal focus:ring-2 focus:ring-signal/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeCustomAction(index)}
+                  className="rounded-full border border-line px-3 py-2 text-sm text-ink70"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addCustomAction}
+              className="rounded-full border border-line px-3 py-2 text-sm text-ink70"
+            >
+              + Add custom action
+            </button>
+          </div>
+          <p className="mt-3 text-sm text-ink45">
+            {selectedCount > 0
+              ? `${selectedCount} action${selectedCount === 1 ? "" : "s"} selected.`
+              : "Choose one or more actions for the model sheet."}
+          </p>
+        </aside>
       </div>
 
       <div className="mt-10">
         <Button
-          disabled={!selected}
-          onClick={() =>
-            selected && approve({ id: project._id, assetId: selected as any })
-          }
+          disabled={!selected || selectedCount === 0}
+          onClick={() => void handleApprove()}
         >
           Approve → build model sheet
         </Button>

@@ -47,7 +47,7 @@ export const setStatus = internalMutation({
 export const setContext = internalMutation({
   args: { id: v.id("projects"), context: v.any() },
   handler: async (ctx, { id, context }) => {
-    await ctx.db.patch(id, { context, stage: "questions", status: "idle" });
+    await ctx.db.patch(id, { context, status: "idle" });
   },
 });
 

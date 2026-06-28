@@ -33,7 +33,6 @@ export const generateAll = action({
     await Promise.all(
       poses.map(async (poseName: string) => {
         const pose = poseName as Pose;
-        if (!POSES.includes(pose)) return;
         const assetId = await ctx.runMutation(internal.assets.create, {
           projectId,
           kind: "pose",
