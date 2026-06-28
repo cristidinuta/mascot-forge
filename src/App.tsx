@@ -62,7 +62,7 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
         </section>
 
         <aside className="hidden lg:flex justify-end">
-          <div className="rounded-[28px] bg-panel2 p-7 shadow-sheet w-full max-w-[22rem]">
+          <div className="rounded-[28px] bg-panel2 p-7 shadow-sheet w-full">
             <div className="font-display text-[11px] uppercase tracking-[0.28em] text-ink45">
               premium flow
             </div>
@@ -71,11 +71,11 @@ function Landing({ onStart }: { onStart: (id: Id<"projects">) => void }) {
             </div>
             <div className="mt-6 space-y-3 text-left">
               <div className="rounded-2xl bg-paper p-4">
-                <div className="font-semibold text-sm text-ink">01 · Identify the app</div>
+                <div className="font-semibold text-sm text-ink">01 · Choose your app</div>
                 <p className="text-ink70 text-sm mt-1">We pull the app store context and shape the brief.</p>
               </div>
               <div className="rounded-2xl bg-paper p-4">
-                <div className="font-semibold text-sm text-ink">02 · Answer the right questions</div>
+                <div className="font-semibold text-sm text-ink">02 · Personalize Your Mascot</div>
                 <p className="text-ink70 text-sm mt-1">Choose the form, personality, and visual direction.</p>
               </div>
               <div className="rounded-2xl bg-paper p-4">
