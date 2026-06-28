@@ -2,7 +2,7 @@
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { generateMascot, editPose } from "./lib/openai";
+import { generateMascot, editPose } from "./lib/gemini";
 import { mascotPrompt } from "./lib/prompts";
 
 // Generate a fresh base mascot from context + answers.

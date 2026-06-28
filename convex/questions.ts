@@ -2,7 +2,7 @@
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { chatJSON } from "./lib/openai";
+import { chatJSON } from "./lib/gemini";
 import { questionsPrompt } from "./lib/prompts";
 
 type QResp = { questions: { id: string; question: string; options: string[] }[] };

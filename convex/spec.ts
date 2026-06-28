@@ -2,7 +2,7 @@
 import { action } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 import { v } from "convex/values";
-import { chatJSON } from "./lib/openai";
+import { chatJSON } from "./lib/gemini";
 import { specPrompt } from "./lib/prompts";
 import { SPEC_VERSION } from "./lib/constants";
 

@@ -2,7 +2,7 @@
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { editPose } from "./lib/openai";
+import { editPose } from "./lib/gemini";
 import { posePrompt } from "./lib/prompts";
 import { POSES, Pose } from "./lib/constants";
 
